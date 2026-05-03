@@ -108,67 +108,60 @@ def detect_breakout(price, high, low, open_p, prev_close, high_52, change_pct, d
     return {'type': None, 'strength': 'NONE', 'confirmations': [], 'weaknesses': [], 'is_breakout': False}
 
 def get_wave_action(wave_stage, price, fib):
-    """Neo Wave targets using Fibonacci extensions - Proper Elliott Wave theory"""
     plan = {'entry_low':0,'entry_high':0,'stop_loss':0,'target1':0,'target2':0,'target1_pct':0,'target2_pct':0,'immediate':'','exit':'','risk_reward':0,'position':'10'}
     
-    # Calculate prior wave range for extensions
-    wave_range = fib['786'] - fib['236']  # Prior wave range
+    wave_range = fib['786'] - fib['236']
     if wave_range <= 0: wave_range = price * 0.1
     
     if 'WAVE-1' in wave_stage:
-        # Target: Fib retracement of the prior down move
         plan['entry_low'] = round(price * 0.99, 0)
         plan['entry_high'] = round(price * 1.02, 0)
-        plan['stop_loss'] = round(fib['786'], 0)  # Below prior low
-        plan['target1'] = round(fib['382'], 0)  # 38.2% retracement
-        plan['target2'] = round(fib['618'], 0)  # 61.8% retracement
+        plan['stop_loss'] = round(fib['786'], 0)
+        plan['target1'] = round(fib['382'], 0)
+        plan['target2'] = round(fib['618'], 0)
         plan['immediate'] = 'START position 50% - Wave 1 beginning'
         plan['exit'] = 'Trail SL to entry at Target 1, let balance run to T2'
         plan['position'] = '10-15'
         
     elif 'WAVE-2' in wave_stage:
-        # Target: Previous Wave 1 high, then extension
-        plan['entry_low'] = round(fib['618'], 0)  # Buy at 61.8% retracement
-        plan['entry_high'] = round(fib['500'], 0)  # Buy at 50% retracement
-        plan['stop_loss'] = round(fib['786'] * 0.98, 0)  # Just below 78.6%
-        plan['target1'] = round(fib['236'], 0)  # Previous Wave 1 high
-        plan['target2'] = round(fib['236'] + wave_range * 0.618, 0)  # 161.8% extension
+        plan['entry_low'] = round(fib['618'], 0)
+        plan['entry_high'] = round(fib['500'], 0)
+        plan['stop_loss'] = round(fib['786'] * 0.98, 0)
+        plan['target1'] = round(fib['236'], 0)
+        plan['target2'] = round(fib['236'] + wave_range * 0.618, 0)
         plan['immediate'] = 'BUY at Golden Zone (61.8% Fib) - Best risk/reward'
         plan['exit'] = 'Book 50% at T1 (old high), trail SL on balance to T2'
         plan['position'] = '15-20'
         
     elif 'WAVE-3' in wave_stage:
-        # Target: 161.8% and 261.8% of Wave 1
         wave_1_range = fib['236'] - fib['786'] if fib['236'] > fib['786'] else wave_range
         plan['entry_low'] = round(price * 0.99, 0)
         plan['entry_high'] = round(price * 1.02, 0)
-        plan['stop_loss'] = round(fib['500'], 0)  # Below 50% retracement
-        plan['target1'] = round(fib['236'] + wave_1_range * 1.618, 0)  # 161.8% extension
-        plan['target2'] = round(fib['236'] + wave_1_range * 2.618, 0)  # 261.8% extension
+        plan['stop_loss'] = round(fib['500'], 0)
+        plan['target1'] = round(fib['236'] + wave_1_range * 1.618, 0)
+        plan['target2'] = round(fib['236'] + wave_1_range * 2.618, 0)
         plan['immediate'] = 'BUY FULL - Wave 3 is the strongest impulse'
         plan['exit'] = 'Book 50% at T1 (161.8% ext), trail SL on balance'
         plan['position'] = '15-20'
         
     elif 'WAVE-4' in wave_stage:
-        # Target: Wave 3 high, then 127.2% extension
         plan['entry_low'] = round(fib['382'], 0)
         plan['entry_high'] = round(fib['500'], 0)
         plan['stop_loss'] = round(fib['618'] * 0.98, 0)
-        plan['target1'] = round(fib['236'], 0)  # Wave 3 high
-        plan['target2'] = round(fib['236'] + wave_range * 0.272, 0)  # 127.2% extension
+        plan['target1'] = round(fib['236'], 0)
+        plan['target2'] = round(fib['236'] + wave_range * 0.272, 0)
         plan['immediate'] = 'WAIT - Buy only on breakout above consolidation'
         plan['exit'] = 'Tight SL. Book 100% at T1 if momentum weak'
         plan['position'] = '5-10'
         
     elif 'WAVE-5' in wave_stage:
-        # Target: 61.8% to 100% of Wave 1-3 range
         wave_1_3_range = fib['236'] - fib['786']
         if wave_1_3_range <= 0: wave_1_3_range = wave_range
         plan['entry_low'] = round(price * 0.99, 0)
         plan['entry_high'] = round(price * 1.01, 0)
         plan['stop_loss'] = round(fib['382'], 0)
-        plan['target1'] = round(price + wave_1_3_range * 0.618, 0)  # 61.8% of prior
-        plan['target2'] = round(price + wave_1_3_range * 1.0, 0)  # 100% of prior
+        plan['target1'] = round(price + wave_1_3_range * 0.618, 0)
+        plan['target2'] = round(price + wave_1_3_range * 1.0, 0)
         plan['immediate'] = 'QUICK TRADE - Final wave, limited upside'
         plan['exit'] = 'BOOK 100% at T1 or first reversal signal'
         plan['position'] = '5-10'
@@ -178,7 +171,6 @@ def get_wave_action(wave_stage, price, fib):
         plan['exit'] = 'Stay in cash, wait for clear wave formation'
         plan['position'] = '0'
     
-    # Calculate percentages
     if plan['target1'] > 0 and price > 0:
         plan['target1_pct'] = round(((plan['target1'] - price) / price) * 100, 1)
     if plan['target2'] > 0 and price > 0:
@@ -187,8 +179,15 @@ def get_wave_action(wave_stage, price, fib):
         risk = abs(price - plan['stop_loss'])
         reward = abs(plan['target1'] - price)
         plan['risk_reward'] = round(reward / risk, 1) if risk > 0 else 0
+        
+        if plan['risk_reward'] < 1.5:
+            plan['stop_loss'] = round(price * 0.97, 0)
+            new_risk = abs(price - plan['stop_loss'])
+            if new_risk > 0:
+                plan['risk_reward'] = round(reward / new_risk, 1)
     
     return plan
+
 def send_pulse_alert(text):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     try:
@@ -244,15 +243,24 @@ def build_message(alerts, now):
     patterns = [a for a in alerts if a['wave']['confidence'] >= 30]
     breakouts = [a for a in alerts if a['breakout']['is_breakout']]
     
+    good_patterns = []
+    for a in patterns:
+        w = a['wave']; p = a['price']; fib = w['fib_levels']
+        action = get_wave_action(w['stage'], p, fib)
+        if action['risk_reward'] >= 1.0:
+            a['action'] = action
+            good_patterns.append(a)
+    patterns = good_patterns
+    
     msg = f"<b>MARKET PULSE</b>\n{now.strftime('%d-%b %I:%M %p')} IST\n{'='*30}\n\n"
     msg += f"Neo Wave: {len(patterns)} | Breakouts: {len(breakouts)}\n\n"
     
-    # NEO WAVE FIRST (Higher Accuracy)
     if patterns:
         msg += f"<b>NEO WAVE PATTERNS</b>\n{'='*30}\n\n"
         for i, a in enumerate(patterns[:3], 1):
-            w = a['wave']; p = a['price']; fib = w['fib_levels']
-            action = get_wave_action(w['stage'], p, fib)
+            w = a['wave']
+            p = a['price']
+            action = a['action']
             emoji = "🟢" if w['confidence']>=60 else "🔵" if w['confidence']>=40 else "🟡"
             
             msg += f"{emoji} <b>{i}. {a['symbol']}</b> | Rs.{p:.0f} | {a['change']:+.1f}%\n"
@@ -263,7 +271,6 @@ def build_message(alerts, now):
             msg += f"   Exit: {action['exit']}\n"
             msg += f"   Risk: 1:{action['risk_reward']} | Pos: {action['position']}%\n\n"
     
-    # BREAKOUTS SECOND
     if breakouts:
         msg += f"<b>BREAKOUT SCANS</b>\n{'='*30}\n\n"
         for i, a in enumerate(breakouts[:3], 1):

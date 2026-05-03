@@ -86,26 +86,50 @@ def detect_breakout(price, high, low, open_p, prev_close, high_52, change_pct, d
     is_52w = price > high_52 * 0.98
     is_gap = open_p > prev_close * 1.01
     is_close_strong = ((price - low) / (high - low) * 100) > 65 if (high - low) > 0 else False
-    is_vol = volume_ratio > 1.5
-    is_del = delivery_pct > 50
     is_mom = change_pct > 1.5
+    is_green = price > open_p
     
-    if is_52w or is_gap or (change_pct > 2 and is_close_strong):
+    # Volume check - only if data available
+    is_vol = volume_ratio > 1.3 if volume_ratio > 0 else None
+    is_del = delivery_pct > 45 if delivery_pct > 0 else None
+    
+    # Any breakout trigger
+    if is_52w or is_gap or (change_pct > 2 and is_close_strong) or (is_mom and is_close_strong):
         confirms = 0
-        if is_vol: confirms += 1; confirmations.append("High volume")
-        else: weaknesses.append("Low volume")
-        if is_del: confirms += 1; confirmations.append("Strong delivery")
-        else: weaknesses.append("Low delivery")
+        
+        # Always count these
+        if is_52w: confirms += 2; confirmations.append("Near 52W high")
+        if is_gap: confirms += 1; confirmations.append("Gap up opening")
         if is_close_strong: confirms += 1; confirmations.append("Strong close")
-        else: weaknesses.append("Weak close")
-        if is_mom: confirms += 1; confirmations.append("Strong momentum")
-        if price > open_p: confirms += 1; confirmations.append("Green candle")
+        if is_mom: confirms += 1; confirmations.append(f"+{change_pct:.1f}% momentum")
+        if is_green: confirms += 1; confirmations.append("Green candle")
         
-        if confirms >= 4: strength, btype = "STRONG", "BREAKOUT"
-        elif confirms >= 2: strength, btype = "MODERATE", "LIKELY BREAKOUT"
-        else: strength, btype = "WEAK", "WEAK BREAKOUT"
+        # Volume - only if available
+        if is_vol is True: confirms += 1; confirmations.append("High volume")
+        elif is_vol is False: weaknesses.append("Low volume")
         
-        return {'type': btype, 'strength': strength, 'confirmations': confirmations[:3], 'weaknesses': weaknesses[:3], 'is_breakout': True}
+        # Delivery - only if available
+        if is_del is True: confirms += 1; confirmations.append("Strong delivery")
+        elif is_del is False: weaknesses.append("Low delivery")
+        
+        # Strength determination (adjusted for missing data)
+        max_possible = 6 if (is_vol is not None and is_del is not None) else 4
+        
+        if confirms >= max_possible - 1:
+            strength, btype = "STRONG", "BREAKOUT"
+        elif confirms >= max_possible - 2:
+            strength, btype = "MODERATE", "LIKELY BREAKOUT"
+        else:
+            strength, btype = "WEAK", "WEAK BREAKOUT"
+        
+        return {
+            'type': btype,
+            'strength': strength,
+            'confirmations': confirmations[:3],
+            'weaknesses': weaknesses[:2],
+            'is_breakout': True
+        }
+    
     return {'type': None, 'strength': 'NONE', 'confirmations': [], 'weaknesses': [], 'is_breakout': False}
 
 def get_wave_action(wave_stage, price, fib):

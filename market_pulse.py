@@ -1,6 +1,7 @@
 """
 MARKET PULSE v3.0 - Neo Wave Priority + Breakout Scanner
 Neo Wave (Higher Accuracy) shown first, Breakouts second
+Honest delivery data - shows when data is real vs estimated
 """
 import os
 import time
@@ -218,44 +219,52 @@ def run_pulse_scan():
             prev_close = float(q.get('previousClose', 0))
             high_52 = float(weekly.get('max', 0))
             low_52 = float(weekly.get('min', 0))
+            
+            # HONEST delivery data
             try:
                 vol = float(q.get('totalTradedVolume', 0))
                 dq = float(q.get('deliveryQuantity', 0))
                 bq = float(q.get('totalBuyQuantity', 0))
                 sq = float(q.get('totalSellQuantity', 0))
                 
-                # Try actual delivery data first
                 if vol > 0 and dq > 0:
                     dp = (dq / vol * 100)
-                elif vol > 0 and (bq + sq) > 0:
-                    # Fallback: Buy/Sell ratio as delivery proxy
-                    total = bq + sq
-                    buy_pct = (bq / total) * 100
-                    if buy_pct > 60:
-                        dp = 65  # Strong buying = high delivery
-                    elif buy_pct > 50:
-                        dp = 50  # Moderate
-                    elif buy_pct > 40:
-                        dp = 35  # Average
-                    else:
-                        dp = 20  # Selling pressure
+                    delivery_label = f"Del: {dp:.0f}%"
                 elif vol > 0:
-                    dp = 40  # Has volume but no breakdown
+                    total = bq + sq
+                    if total > 0:
+                        buy_pct = (bq / total) * 100
+                        delivery_label = f"Buy: {buy_pct:.0f}%"
+                        dp = buy_pct
+                    else:
+                        delivery_label = "N/A"
+                        dp = 0
                 else:
-                    dp = 40  # Default
+                    delivery_label = "N/A"
+                    dp = 0
                     
-                # Volume ratio
                 vr = bq / sq if sq > 0 else 1.0
                 
             except:
-                dp = 40
+                delivery_label = "N/A"
+                dp = 0
                 vr = 1.0
             
             wave = detect_neo_wave(price, high, low, open_p, prev_close, high_52, low_52, change_pct)
             breakout = detect_breakout(price, high, low, open_p, prev_close, high_52, change_pct, dp, vr)
             
             if wave['confidence'] >= 30 or breakout['is_breakout']:
-                alerts.append({'symbol':symbol,'price':price,'change':change_pct,'wave':wave,'breakout':breakout,'delivery':dp,'volume_ratio':vr,'time':now.strftime('%I:%M %p')})
+                alerts.append({
+                    'symbol':symbol,
+                    'price':price,
+                    'change':change_pct,
+                    'wave':wave,
+                    'breakout':breakout,
+                    'delivery':dp,
+                    'delivery_label':delivery_label,
+                    'volume_ratio':vr,
+                    'time':now.strftime('%I:%M %p')
+                })
             time.sleep(0.08)
         except: pass
     return alerts, now
@@ -305,7 +314,7 @@ def build_message(alerts, now):
             msg += f"   Type: {b['type']} | Strength: {b['strength']}\n"
             if b['confirmations']: msg += f"   + {', '.join(b['confirmations'][:2])}\n"
             if b['weaknesses']: msg += f"   - {', '.join(b['weaknesses'][:2])}\n"
-            msg += f"   Delivery: {a['delivery']:.0f}%\n\n"
+            msg += f"   {a['delivery_label']}\n\n"
     
     msg += f"{'='*30}\nAuto-Scanner | Every Hour"
     return msg

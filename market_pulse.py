@@ -111,32 +111,63 @@ def get_wave_action(wave_stage, price, fib):
     plan = {'entry_low':0,'entry_high':0,'stop_loss':0,'target1':0,'target2':0,'target1_pct':0,'target2_pct':0,'immediate':'','exit':'','risk_reward':0,'position':'10'}
     
     if 'WAVE-1' in wave_stage:
-        plan['entry_low']=round(price*0.99,0); plan['entry_high']=round(price*1.01,0); plan['stop_loss']=round(price*0.95,0)
-        plan['target1']=round(fib['382'],0); plan['target2']=round(fib['500'],0)
-        plan['target1_pct']=round(((plan['target1']-price)/price)*100,1); plan['target2_pct']=round(((plan['target2']-price)/price)*100,1)
-        plan['immediate']='Buy 50% now, add 50% on dip'; plan['exit']='SL -5%, Exit at Target 1'; plan['risk_reward']=round(plan['target1_pct']/5,1); plan['position']='10-15'
+        plan['entry_low']=round(price*0.99,0); plan['entry_high']=round(price*1.01,0)
+        plan['stop_loss']=round(price*0.95,0)
+        # Target ABOVE current price
+        plan['target1']=round(max(price*1.08, fib['382']),0)
+        plan['target2']=round(max(price*1.15, fib['500']),0)
+        plan['immediate']='Buy 50% now, add 50% on dip'; plan['exit']='SL -5%, Exit at Target 1'
+        plan['position']='10-15'
+        
     elif 'WAVE-2' in wave_stage:
-        plan['entry_low']=round(fib['618'],0); plan['entry_high']=round(fib['500'],0); plan['stop_loss']=round(fib['786']*0.97,0)
-        plan['target1']=round(fib['382'],0); plan['target2']=round(fib['236'],0)
-        plan['target1_pct']=round(((plan['target1']-price)/price)*100,1); plan['target2_pct']=round(((plan['target2']-price)/price)*100,1)
-        plan['immediate']='ACCUMULATE at Golden Zone'; plan['exit']='SL below Fib 78.6%, Target Fib 38.2%'; plan['risk_reward']=round(plan['target1_pct']/3,1); plan['position']='15-20'
+        plan['entry_low']=round(fib['618'],0); plan['entry_high']=round(fib['500'],0)
+        plan['stop_loss']=round(fib['786']*0.97,0)
+        # Target ABOVE entry zone
+        plan['target1']=round(max(price*1.10, fib['500']),0)
+        plan['target2']=round(max(price*1.20, fib['382']),0)
+        plan['immediate']='ACCUMULATE at Golden Zone'; plan['exit']='SL below Fib 78.6%, Target Fib 50%'
+        plan['position']='15-20'
+        
     elif 'WAVE-3' in wave_stage:
-        plan['entry_low']=round(price*0.98,0); plan['entry_high']=round(price*1.02,0); plan['stop_loss']=round(fib['500'],0)
-        plan['target1']=round(fib['236'],0); plan['target2']=round(price*1.25,0)
-        plan['target1_pct']=round(((plan['target1']-price)/price)*100,1); plan['target2_pct']=round(((plan['target2']-price)/price)*100,1)
-        plan['immediate']='BUY full position - Strong momentum'; plan['exit']='Trail SL, Book 50% at T1'; plan['risk_reward']=round(plan['target1_pct']/5,1); plan['position']='15-20'
+        plan['entry_low']=round(price*0.98,0); plan['entry_high']=round(price*1.02,0)
+        plan['stop_loss']=round(fib['500'],0)
+        # Target ABOVE - Wave 3 is strongest
+        plan['target1']=round(price*1.15,0)
+        plan['target2']=round(price*1.30,0)
+        plan['immediate']='BUY full position - Strong momentum'; plan['exit']='Trail SL, Book 50% at T1'
+        plan['position']='15-20'
+        
     elif 'WAVE-4' in wave_stage:
-        plan['entry_low']=round(fib['382'],0); plan['entry_high']=round(fib['500'],0); plan['stop_loss']=round(fib['618']*0.98,0)
-        plan['target1']=round(price*1.10,0); plan['target2']=round(fib['236'],0)
-        plan['target1_pct']=round(((plan['target1']-price)/price)*100,1); plan['target2_pct']=round(((plan['target2']-price)/price)*100,1)
-        plan['immediate']='WAIT for consolidation breakout'; plan['exit']='Buy on breakout, SL below range'; plan['risk_reward']=round(plan['target1_pct']/3,1); plan['position']='5-10'
+        plan['entry_low']=round(fib['382'],0); plan['entry_high']=round(fib['500'],0)
+        plan['stop_loss']=round(fib['618']*0.98,0)
+        # Target ABOVE consolidation
+        plan['target1']=round(price*1.08,0)
+        plan['target2']=round(price*1.15,0)
+        plan['immediate']='WAIT for consolidation breakout'; plan['exit']='Buy on breakout, SL below range'
+        plan['position']='5-10'
+        
     elif 'WAVE-5' in wave_stage:
-        plan['entry_low']=round(price*0.99,0); plan['entry_high']=round(price*1.01,0); plan['stop_loss']=round(fib['382'],0)
-        plan['target1']=round(price*1.08,0); plan['target2']=round(price*1.15,0)
-        plan['target1_pct']=round(((plan['target1']-price)/price)*100,1); plan['target2_pct']=round(((plan['target2']-price)/price)*100,1)
-        plan['immediate']='QUICK BUY - Final leg'; plan['exit']='BOOK FAST at reversal sign'; plan['risk_reward']=round(plan['target1_pct']/3,1); plan['position']='5-10'
+        plan['entry_low']=round(price*0.99,0); plan['entry_high']=round(price*1.01,0)
+        plan['stop_loss']=round(fib['382'],0)
+        # Target ABOVE - Final push
+        plan['target1']=round(price*1.06,0)
+        plan['target2']=round(price*1.12,0)
+        plan['immediate']='QUICK BUY - Final leg'; plan['exit']='BOOK FAST at reversal sign'
+        plan['position']='5-10'
+        
     else:
         plan['immediate']='NO TRADE'; plan['exit']='Stay in cash'; plan['position']='0'
+    
+    # Calculate percentages AFTER setting targets
+    if plan['target1'] > 0:
+        plan['target1_pct'] = round(((plan['target1'] - price) / price) * 100, 1)
+    if plan['target2'] > 0:
+        plan['target2_pct'] = round(((plan['target2'] - price) / price) * 100, 1)
+    if plan['stop_loss'] > 0:
+        risk = abs(price - plan['stop_loss'])
+        reward = abs(plan['target1'] - price)
+        plan['risk_reward'] = round(reward / risk, 1) if risk > 0 else 0
+    
     return plan
 
 def send_pulse_alert(text):

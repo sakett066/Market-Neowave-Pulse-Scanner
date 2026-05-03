@@ -221,11 +221,35 @@ def run_pulse_scan():
             try:
                 vol = float(q.get('totalTradedVolume', 0))
                 dq = float(q.get('deliveryQuantity', 0))
-                dp = (dq/vol*100) if vol>0 else 0
                 bq = float(q.get('totalBuyQuantity', 0))
                 sq = float(q.get('totalSellQuantity', 0))
-                vr = bq/sq if sq>0 else 1
-            except: dp=40; vr=1
+                
+                # Try actual delivery data first
+                if vol > 0 and dq > 0:
+                    dp = (dq / vol * 100)
+                elif vol > 0 and (bq + sq) > 0:
+                    # Fallback: Buy/Sell ratio as delivery proxy
+                    total = bq + sq
+                    buy_pct = (bq / total) * 100
+                    if buy_pct > 60:
+                        dp = 65  # Strong buying = high delivery
+                    elif buy_pct > 50:
+                        dp = 50  # Moderate
+                    elif buy_pct > 40:
+                        dp = 35  # Average
+                    else:
+                        dp = 20  # Selling pressure
+                elif vol > 0:
+                    dp = 40  # Has volume but no breakdown
+                else:
+                    dp = 40  # Default
+                    
+                # Volume ratio
+                vr = bq / sq if sq > 0 else 1.0
+                
+            except:
+                dp = 40
+                vr = 1.0
             
             wave = detect_neo_wave(price, high, low, open_p, prev_close, high_52, low_52, change_pct)
             breakout = detect_breakout(price, high, low, open_p, prev_close, high_52, change_pct, dp, vr)

@@ -1,0 +1,29 @@
+name: Market Pulse Scanner
+
+on:
+  schedule:
+    - cron: '0 4 * * 1-5'
+    - cron: '0 5 * * 1-5'
+    - cron: '0 6 * * 1-5'
+    - cron: '0 7 * * 1-5'
+    - cron: '0 8 * * 1-5'
+    - cron: '0 9 * * 1-5'
+    - cron: '0 10 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install packages
+        run: pip install nsetools requests
+      - name: Run Market Pulse
+        env:
+          TELEGRAM_PULSE_BOT_TOKEN: ${{ secrets.TELEGRAM_PULSE_BOT_TOKEN }}
+          TELEGRAM_PULSE_CHAT_ID: ${{ secrets.TELEGRAM_PULSE_CHAT_ID }}
+          TZ: Asia/Kolkata
+        run: python market_pulse.py

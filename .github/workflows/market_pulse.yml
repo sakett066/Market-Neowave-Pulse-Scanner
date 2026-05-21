@@ -2,7 +2,7 @@ name: Market Pulse Scanner
 
 on:
   schedule:
-    # 9:00 AM IST → Schedule 8 hours early
+    # 9:00 AM IST
     - cron: '0 1 * * 0-4'
     # 10:00 AM IST
     - cron: '0 2 * * 0-4'
